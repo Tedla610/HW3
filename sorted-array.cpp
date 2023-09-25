@@ -1,207 +1,211 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-//#include <algorithm>
-//#include <stdexcept>
+#include <cstring>
 
 using namespace std;
 
-class Card {
-public:
-    char suit;
-    string rank; // Store rank as a string
+// Head_to_val() method assigns an integer value to cards with different heads
+int head_to_val(char c) {
+    if (c == 'C') return 1;
+    else if (c == 'D') return 2;
+    else if (c == 'H') return 3;
+    else if (c == 'S') return 4;
+}
 
-    Card(char s, const string& r) : suit(s), rank(r) {}
+// Tag_to_val() method assigns an integer value to cards of every denomination with a headset
+int tag_to_val(char c) {
+    if (c == '2') return 1;
+    else if (c == '3') return 2;
+    else if (c == '4') return 3;
+    else if (c == '5') return 4;
+    else if (c == '6') return 5;
+    else if (c == '7') return 6;
+    else if (c == '8') return 7;
+    else if (c == '9') return 8;
+    else if (c == 'M') return 9; // I have used M for 10
+    else if (c == 'J') return 10;
+    else if (c == 'Q') return 11;
+    else if (c == 'K') return 12;
+    else if (c == 'A') return 13;
+}
 
-    bool operator<(const Card& other) const {
-        if (suit == other.suit) {
-            // Compare ranks as integers if they are numeric
-            if (is_numeric(rank) && is_numeric(other.rank)) {
-                return stoi(rank) < stoi(other.rank);
-            }
-            // Otherwise, compare ranks as strings
-            return rank < other.rank;
-        }
-        return suit < other.suit;
+// compareTo method compares two cards
+bool compareTo(string s1, string s2) {
+    if (head_to_val(s1[0]) == head_to_val(s2[0])) {
+        return tag_to_val(s1[1]) < tag_to_val(s2[1]);
+    } else {
+        return head_to_val(s1[0]) < head_to_val(s2[0]);
     }
-
-    bool operator==(const Card& other) const {
-        return suit == other.suit && rank == other.rank;
-    }
-
-    bool operator>(const Card& other) const {
-        return !(*this < other) && !(*this == other);
-    }
-
-private:
-    // Check if a string is numeric
-    bool is_numeric(const string& str) const {
-        return !str.empty() && all_of(str.begin(), str.end(), ::isdigit);
-    }
-};
+}
 
 class CardList {
-private:
-    Card** cards;
-    int size;
-    int maxSize;
+    string* listarr;  // Array to store cards
+    int n;            // Count of cards in the list
 
 public:
-    CardList(int maxSize) : maxSize(maxSize), size(0) {
-        cards = new Card*[maxSize];
+    CardList() {
+        n = 0;
+        listarr = new string[20];  // Dynamic array of size 20
+        for (int i = 0; i < 20; i++) {
+            listarr[i] = " "; // Initialize every string in the list to a space " "
+        }
     }
+
+    void PutItem(string s);
+    void DeleteItem(string s);
+    void GetItem(string s);
+    void printAll();
 
     ~CardList() {
-        for (int i = 0; i < size; ++i) {
-            delete cards[i];
-        }
-        delete[] cards;
-    }
-
-    void putItem(const Card& card) {
-        if (size < maxSize) {
-            cards[size++] = new Card(card);
-            sort(cards, cards + size, [](const Card* a, const Card* b) {
-                return *a < *b;
-            });
-        }
-    }
-
-    void deleteItem(const Card& card) {
-        int foundIndex = -1;
-        for (int i = 0; i < size; ++i) {
-            if (*cards[i] == card) {
-                foundIndex = i;
-                break;
-            }
-        }
-
-        if (foundIndex != -1) {
-            delete cards[foundIndex];
-            for (int j = foundIndex; j < size - 1; ++j) {
-                cards[j] = cards[j + 1];
-            }
-            size--;
-        }
-    }
-
-    bool getItem(const Card& card) {
-        for (int i = 0; i < size; ++i) {
-            if (*cards[i] == card) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void printAll() {
-        for (int i = 0; i < size; ++i) {
-            cout << cards[i]->suit << cards[i]->rank;
-            if (i < size-1) {
-                cout << ",";
-            }
-        }
-        cout << endl;
-    }
-
-    int compareTo(const Card& card1, const Card& card2) {
-        if (card1 < card2) return -1;
-        if (card1 == card2) return 0;
-        return 1;
-    }
-
-    void clear() {
-        for (int i = 0; i < size; ++i) {
-            delete cards[i];
-        }
-        size = 0;
+        delete[] listarr; // Destructor to free dynamically allocated memory
     }
 };
 
-int main() {
-    ifstream inputFile("DataFile.txt");
-    if (!inputFile) {
-        cerr << "Failed to open input file." << endl;
-        return 1;
-    }
-
-    CardList cardList(20);
-    string line;
-
-    // Read and store the first 20 cards
-    getline(inputFile, line);
-    stringstream ss(line);
-    string cardStr;
-    while (getline(ss, cardStr, ',')) {
-        if (cardStr.size() < 2) {
-            cerr << "Invalid card representation: " << cardStr << endl;
-            return 1;
+// PutItem() method inserts a string (card) s into the sorted Poker cards list.
+void CardList::PutItem(string s) {
+    if (listarr[0] == " ") {
+        listarr[0] = s;
+    } else {
+        int i = 0;
+        while (compareTo(listarr[i], s) && listarr[i] != " ") {
+            i++;
         }
-        char suit = cardStr[0];
-        string rank = cardStr.substr(1);
-        cardList.putItem(Card(suit, rank));
-    }
-
-  //  cout << "Step 1: ";
-    cardList.printAll();
-
-    // Read and delete all cards on the second line
-    getline(inputFile, line);
-    ss.clear();
-    ss.str(line);
-    while (getline(ss, cardStr, ',')) {
-        if (cardStr.size() < 2) {
-            cerr << "Invalid card representation: " << cardStr << endl;
-            return 1;
-        }
-        char suit = cardStr[0];
-        string rank = cardStr.substr(1);
-        cardList.deleteItem(Card(suit, rank));
-    }
-
-   // cout << "Step 2: ";
-    cardList.printAll();
-
-    // Read and put the first 3 cards from the third line into the list
-    getline(inputFile, line);
-    ss.clear();
-    ss.str(line);
-    int cardsToAdd = 3;
-    while (getline(ss, cardStr, ',') && cardsToAdd > 0) {
-        if (cardStr.size() < 2) {
-            cerr << "Invalid card representation: " << cardStr << endl;
-            return 1;
-        }
-        char suit = cardStr[0];
-        string rank = cardStr.substr(1);
-        cardList.putItem(Card(suit, rank));
-        cardsToAdd--;
-    }
-
-   // cout << "Step 3: ";
-    cardList.printAll();
-
-    // Read and search for cards in the fourth line
-    getline(inputFile, line);
-    ss.clear();
-    ss.str(line);
-   // cout << "Step 4: ";
-    while (getline(ss, cardStr, ',')) {
-        if (cardStr.size() < 2) {
-            cerr << "Invalid card representation: " << cardStr << endl;
-            return 1;
-        }
-        char suit = cardStr[0];
-        string rank = cardStr.substr(1);
-        if (cardList.getItem(Card(suit, rank))) {
-            cout << suit << rank << " YES ";
+        if (listarr[i] == " ") {
+            listarr[i] = s;
         } else {
-            cout << suit << rank << " NO ";
+            for (int j = 18; j >= i; j--) {
+                listarr[j + 1] = listarr[j];
+            }
+            listarr[i] = s;
         }
     }
-    cout << endl;
+    n += 1;
+}
 
-    inputFile.close();
+// DeleteItem() method deletes a string (card) s from the sorted Poker cards list.
+void CardList::DeleteItem(string s) {
+    if (listarr[0] == " ") {
+        return;
+    } else {
+        int i = 0;
+        while (listarr[i] != s && i < 20 && listarr[i] != " ") {
+            i++;
+        }
+        if (listarr[i] == s) {
+            for (int j = i; j < 19; j++) {
+                listarr[j] = listarr[j + 1];
+            }
+            n -= 1;
+        } else {
+           return ;
+        }
+    }
+}
+
+// Display() method displays the list of cards.
+void CardList::printAll() {
+    for (int i = 0; i < n - 1; i++) {
+        if (listarr[i][1] == 'M') {
+            cout << listarr[i][0] << "10,";
+            continue;
+        }
+        cout << listarr[i] << ",";
+    }
+    cout << listarr[n - 1] << endl;
+}
+
+// GetItem() method finds a string (card) s in the sorted Poker cards list.
+void CardList::GetItem(string s) {
+    if (listarr[0] == " ") {
+        cout << s << " NO ";
+    } else {
+        int i = 0;
+        while (listarr[i] != s && i < n && listarr[i] != " ") {
+            i++;
+        }
+        if (listarr[i] == s) {
+            cout << s << " YES ";
+        } else {
+            cout << s << " NO ";
+        }
+    }
+}
+
+int main() {
+    ifstream fobj;
+    fobj.open("DataFile.txt");
+
+    if (!fobj.good()) {
+        cout << "Error opening file!!" << endl;
+    } else {
+        CardList cardList;
+        string str;
+
+        // Read the first 20 cards in the first line of the file and put them one by one into the list
+        getline(fobj, str);
+        stringstream ss(str);
+        int i = 0;
+        while (ss.good() && i < 20) {
+            string substr;
+            getline(ss, substr, ',');
+            if (substr[1] == '1' && substr[2] == '0') {
+                substr[1] = 'M';
+                substr[2] = '\0';
+            }
+            cardList.PutItem(substr);
+            i++;
+        }
+
+        cardList.printAll();
+
+        // Delete the cards indicated in the second line of the file
+        getline(fobj, str);
+        stringstream ss1(str);
+        i = 0;
+        while (ss1.good() && i < 20) {
+            string substr;
+            getline(ss1, substr, ',');
+            if (substr[1] == '1' && substr[2] == '0') {
+                substr[1] = 'M';
+                substr[2] = '\0';
+            }
+            cardList.DeleteItem(substr);
+            i++;
+        }
+
+        cardList.printAll();
+
+        // Put the items in the third line into the list
+        getline(fobj, str);
+        stringstream ss2(str);
+        i = 0;
+        while (ss2.good() && i < 20) {
+            string substr;
+            getline(ss2, substr, ',');
+            if (substr[1] == '1' && substr[2] == '0') {
+                substr[1] = 'M';
+                substr[2] = '\0';
+            }
+            cardList.PutItem(substr);
+            i++;
+        }
+
+        cardList.printAll();
+
+        // Search the current list for the elements in the list
+        getline(fobj, str);
+        stringstream ss3(str);
+        i = 0;
+        while (ss3.good() && i < 20) {
+            string substr;
+            getline(ss3, substr, ',');
+            cardList.GetItem(substr);
+            i++;
+        }
+
+        cout << endl;
+    }
 
     return 0;
 }
