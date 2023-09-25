@@ -128,7 +128,7 @@ int main() {
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
         if (rank == "10") {
-            rank = "M";
+            rank = "10";
         }
         cardList.putItem(Card(suit, rank));
     }
@@ -136,33 +136,37 @@ int main() {
     cout << "Step 1: ";
     cardList.printAll();
 
-    // Read and delete the cards indicated in the second line
+    // Read and delete the first 4 cards indicated in the second line
     getline(inputFile, line);
     ss.clear();
     ss.str(line);
-    while (getline(ss, cardStr, ',')) {
+    int cardsToDelete = 4;
+    while (getline(ss, cardStr, ',') && cardsToDelete > 0) {
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
         if (rank == "10") {
-            rank = "M";
+            rank = "10";
         }
         cardList.deleteItem(Card(suit, rank));
+        cardsToDelete--;
     }
 
     cout << "Step 2: ";
     cardList.printAll();
 
-    // Read and put the items from the third line into the list
+    // Read and put the first 3 cards from the third line into the list
     getline(inputFile, line);
     ss.clear();
     ss.str(line);
-    while (getline(ss, cardStr, ',')) {
+    int cardsToAdd = 3;
+    while (getline(ss, cardStr, ',') && cardsToAdd > 0) {
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
         if (rank == "10") {
-            rank = "M";
+            rank = "10";
         }
         cardList.putItem(Card(suit, rank));
+        cardsToAdd--;
     }
 
     cout << "Step 3: ";
@@ -177,12 +181,12 @@ int main() {
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
         if (rank == "10") {
-            rank = "M";
+            rank = "10";
         }
         if (cardList.getItem(Card(suit, rank))) {
-            cout << suit << rank << " YES, ";
+            cout << suit << rank << " YES ";
         } else {
-            cout << suit << rank << " NO, ";
+            cout << suit << rank << " NO ";
         }
     }
     cout << endl;
@@ -191,6 +195,8 @@ int main() {
 
     return 0;
 }
+
+
 
 
 
