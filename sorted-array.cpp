@@ -4,201 +4,222 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <algorithm>
+
 using namespace std;
 
-const int MAX_ITEMS = 20;
-
-enum RelationType { LESS, GREATER, EQUAL };
-
-class ItemType
-{
+class Card {
 public:
-    ItemType();
-    RelationType ComparedTo(ItemType) const;
-    void Initialize(int number);
-    friend ostream& operator<<(ostream& os, const ItemType& item);
-private:
-    int value;
+    char suit;
+    string rank;
+
+    Card(char s, const string& r) : suit(s), rank(r) {}
+
+    bool operator<(const Card& other) const {
+        if (suit == other.suit) {
+            return rank < other.rank;
+        }
+        return suit < other.suit;
+    }
+
+    bool operator==(const Card& other) const {
+        return suit == other.suit && rank == other.rank;
+    }
+
+    bool operator>(const Card& other) const {
+        return !(*this < other) && !(*this == other);
+    }
 };
 
-ItemType::ItemType()
-{
-    value = 0;
-}
-
-RelationType ItemType::ComparedTo(ItemType otherItem) const
-{
-    if (value < otherItem.value)
-        return LESS;
-    else if (value > otherItem.value)
-        return GREATER;
-    else
-        return EQUAL;
-}
-
-void ItemType::Initialize(int number)
-{
-    value = number;
-}
-
-ostream& operator<<(ostream& os, const ItemType& item)
-{
-    os << item.value;
-    return os;
-}
-
-class SortedType
-{
-public:
-    SortedType();
-    ItemType GetItem(ItemType item, bool& found);
-    void PutItem(ItemType item);
-    void DeleteItem(ItemType item);
-    void PrintAll() const;
+class CardList {
 private:
-    int length;
-    ItemType info[MAX_ITEMS];
-    int currentPos;
-};
+    Card** cards;
+    int size;
+    int maxSize;
 
-SortedType::SortedType()
-{
-    length = 0;
-}
+public:
+    CardList(int maxSize) : maxSize(maxSize), size(0) {
+        cards = new Card*[maxSize];
+    }
 
-ItemType SortedType::GetItem(ItemType item, bool& found)
-{
-    int midPoint;
-    int first = 0;
-    int last = length - 1;
-    bool moreToSearch = first <= last;
-    found = false;
-    while (moreToSearch && !found)
-    {
-        midPoint = (first + last) / 2;
-        switch (item.ComparedTo(info[midPoint]))
-        {
-            case LESS: last = midPoint - 1;
-                moreToSearch = first <= last;
-                break;
-            case GREATER: first = midPoint + 1;
-                moreToSearch = first <= last;
-                break;
-            case EQUAL: found = true;
-                item = info[midPoint];
-                break;
+    ~CardList() {
+        for (int i = 0; i < size; ++i) {
+            delete cards[i];
+        }
+        delete[] cards;
+    }
+
+    void putItem(const Card& card) {
+        if (size < maxSize) {
+            cards[size++] = new Card(card);
+            sort(cards, cards + size, [](const Card* a, const Card* b) {
+                return *a < *b;
+            });
         }
     }
-    return item;
-}
 
-void SortedType::DeleteItem(ItemType item)
-{
-    int location = 0;
-    while (item.ComparedTo(info[location]) != EQUAL)
-        location++;
-    for (int index = location + 1; index < length; index++)
-        info[index - 1] = info[index];
-    length--;
-}
+    void deleteItem(const Card& card) {
+        int foundIndex = -1;
+        for (int i = 0; i < size; ++i) {
+            if (*cards[i] == card) {
+                foundIndex = i;
+                break;
+            }
+        }
 
-void SortedType::PutItem(ItemType item)
-{
-    bool moreToSearch;
-    int location = 0;
-    moreToSearch = (location < length);
-    while (moreToSearch)
-    {
-        switch (item.ComparedTo(info[location]))
-        {
-            case LESS: moreToSearch = false;
-                break;
-            case GREATER: location++;
-                moreToSearch = (location < length);
-                break;
+        if (foundIndex != -1) {
+            delete cards[foundIndex];
+            for (int j = foundIndex; j < size - 1; ++j) {
+                cards[j] = cards[j + 1];
+            }
+            size--;
         }
     }
-    for (int index = length; index > location; index--)
-        info[index] = info[index - 1];
-    info[location] = item;
-    length++;
-}
 
-void SortedType::PrintAll() const
-{
-    for (int i = 0; i < length; i++)
-    {
-        cout << info[i];
-        if (i < length - 1)
-            cout << ",";
+    bool getItem(const Card& card) {
+        for (int i = 0; i < size; ++i) {
+            if (*cards[i] == card) {
+                return true;
+            }
+        }
+        return false;
     }
-    cout << endl;
-}
 
-int main()
-{
-    ifstream inputFile("DataFile.txt");
-    if (!inputFile)
-    {
-        cerr << "Error opening the file." << endl;
+    void printAll() {
+        for (int i = 0; i < size; ++i) {
+            cout << cards[i]->suit << cards[i]->rank;
+            if (i < size - 1) {
+                cout << ",";
+            }
+        }
+        cout << endl;
+    }
+
+    int compareTo(const Card& card1, const Card& card2) {
+        if (card1 < card2) return -1;
+        if (card1 == card2) return 0;
         return 1;
     }
 
-    SortedType list;
+    void clear() {
+        for (int i = 0; i < size; ++i) {
+            delete cards[i];
+        }
+        size = 0;
+    }
+};
 
-    // Read the first 20 cards and put them into the list
-    for (int i = 0; i < 20; i++)
-    {
-        char suit, value;
-        inputFile >> suit >> value;
-        ItemType item;
-        item.Initialize(value - '0'); // Convert character to integer
-        list.PutItem(item);
+int main() {
+    ifstream inputFile("DataFile.txt");
+    if (!inputFile) {
+        cerr << "Failed to open input file." << endl;
+        return 1;
     }
 
-    cout << "List after inserting the first 20 cards: ";
-    list.PrintAll();
+    CardList cardList(20);
+    string line;
 
-    // Delete the cards indicated in the second line of the file
-    for (int i = 0; i < 4; i++)
-    {
-        char suit, value;
-        inputFile >> suit >> value;
-        ItemType item;
-        item.Initialize(value - '0'); // Convert character to integer
-        list.DeleteItem(item);
+    // Read and store the first 20 cards
+    getline(inputFile, line);
+    stringstream ss(line);
+    string cardStr;
+    while (getline(ss, cardStr, ',')) {
+        char suit = cardStr[0];
+        string rank = cardStr.substr(1);
+        if (rank == "10") {
+            rank = "M";
+        }
+        cardList.putItem(Card(suit, rank));
     }
 
-    cout << "List after deleting specified cards: ";
-    list.PrintAll();
+    cout << "Step 1: ";
+    cardList.printAll();
 
-    // Put the items in the third line into the list
-    for (int i = 0; i < 2; i++)
-    {
-        char suit, value;
-        inputFile >> suit >> value;
-        ItemType item;
-        item.Initialize(value - '0'); // Convert character to integer
-        list.PutItem(item);
+    // Read and delete the cards indicated in the second line
+    getline(inputFile, line);
+    ss.clear();
+    ss.str(line);
+    while (getline(ss, cardStr, ',')) {
+        char suit = cardStr[0];
+        string rank = cardStr.substr(1);
+        if (rank == "10") {
+            rank = "M";
+        }
+        cardList.deleteItem(Card(suit, rank));
     }
 
-    cout << "List after inserting the third line cards: ";
-    list.PrintAll();
+    cout << "Step 2: ";
+    cardList.printAll();
 
-    // Search for the elements in the list
-    ItemType searchItem;
-    searchItem.Initialize(9); // Example card to search for
-    bool found;
-    list.GetItem(searchItem, found);
+    // Read and put the items from the third line into the list
+    getline(inputFile, line);
+    ss.clear();
+    ss.str(line);
+    while (getline(ss, cardStr, ',')) {
+        char suit = cardStr[0];
+        string rank = cardStr.substr(1);
+        if (rank == "10") {
+            rank = "M";
+        }
+        cardList.putItem(Card(suit, rank));
+    }
 
-    cout << "C9 " << (found ? "YES" : "NO") << ", ";
+    cout << "Step 3: ";
+    cardList.printAll();
 
-    searchItem.Initialize(10); // Example card to search for
-    list.GetItem(searchItem, found);
-    cout << "C10 " << (found ? "YES" : "NO") << endl;
+    // Read and search for cards in the fourth line
+    getline(inputFile, line);
+    ss.clear();
+    ss.str(line);
+    cout << "Step 4: ";
+    while (getline(ss, cardStr, ',')) {
+        char suit = cardStr[0];
+        string rank = cardStr.substr(1);
+        if (rank == "10") {
+            rank = "M";
+        }
+        if (cardList.getItem(Card(suit, rank))) {
+            cout << suit << rank << " YES, ";
+        } else {
+            cout << suit << rank << " NO, ";
+        }
+    }
+    cout << endl;
+
+    inputFile.close();
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
