@@ -1,23 +1,25 @@
-// Name: Tedla Boke
-// Netid: uq6435
-// Email: tboke@horizon.csueastbay.edu
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <stdexcept> // for std::invalid_argument exception
 
 using namespace std;
 
 class Card {
 public:
     char suit;
-    string rank;
+    string rank; // Store rank as a string
 
     Card(char s, const string& r) : suit(s), rank(r) {}
 
     bool operator<(const Card& other) const {
         if (suit == other.suit) {
+            // Compare ranks as integers if they are numeric
+            if (is_numeric(rank) && is_numeric(other.rank)) {
+                return stoi(rank) < stoi(other.rank);
+            }
+            // Otherwise, compare ranks as strings
             return rank < other.rank;
         }
         return suit < other.suit;
@@ -29,6 +31,12 @@ public:
 
     bool operator>(const Card& other) const {
         return !(*this < other) && !(*this == other);
+    }
+
+private:
+    // Check if a string is numeric
+    bool is_numeric(const string& str) const {
+        return !str.empty() && all_of(str.begin(), str.end(), ::isdigit);
     }
 };
 
@@ -89,7 +97,7 @@ public:
     void printAll() {
         for (int i = 0; i < size; ++i) {
             cout << cards[i]->suit << cards[i]->rank;
-            if (i < size - 1) {
+            if (i < size-1) {
                 cout << ",";
             }
         }
@@ -125,30 +133,30 @@ int main() {
     stringstream ss(line);
     string cardStr;
     while (getline(ss, cardStr, ',')) {
+        if (cardStr.size() < 2) {
+            cerr << "Invalid card representation: " << cardStr << endl;
+            return 1;
+        }
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
-        if (rank == "10") {
-            rank = "10";
-        }
         cardList.putItem(Card(suit, rank));
     }
 
     cout << "Step 1: ";
     cardList.printAll();
 
-    // Read and delete the first 4 cards indicated in the second line
+    // Read and delete all cards on the second line
     getline(inputFile, line);
     ss.clear();
     ss.str(line);
-    int cardsToDelete = 4;
-    while (getline(ss, cardStr, ',') && cardsToDelete > 0) {
+    while (getline(ss, cardStr, ',')) {
+        if (cardStr.size() < 2) {
+            cerr << "Invalid card representation: " << cardStr << endl;
+            return 1;
+        }
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
-        if (rank == "10") {
-            rank = "10";
-        }
         cardList.deleteItem(Card(suit, rank));
-        cardsToDelete--;
     }
 
     cout << "Step 2: ";
@@ -160,11 +168,12 @@ int main() {
     ss.str(line);
     int cardsToAdd = 3;
     while (getline(ss, cardStr, ',') && cardsToAdd > 0) {
+        if (cardStr.size() < 2) {
+            cerr << "Invalid card representation: " << cardStr << endl;
+            return 1;
+        }
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
-        if (rank == "10") {
-            rank = "10";
-        }
         cardList.putItem(Card(suit, rank));
         cardsToAdd--;
     }
@@ -178,11 +187,12 @@ int main() {
     ss.str(line);
     cout << "Step 4: ";
     while (getline(ss, cardStr, ',')) {
+        if (cardStr.size() < 2) {
+            cerr << "Invalid card representation: " << cardStr << endl;
+            return 1;
+        }
         char suit = cardStr[0];
         string rank = cardStr.substr(1);
-        if (rank == "10") {
-            rank = "10";
-        }
         if (cardList.getItem(Card(suit, rank))) {
             cout << suit << rank << " YES ";
         } else {
@@ -195,93 +205,3 @@ int main() {
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
