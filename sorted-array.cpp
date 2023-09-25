@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
-#include <stdexcept>
+//#include <algorithm>
+//#include <stdexcept>
 
 using namespace std;
 
