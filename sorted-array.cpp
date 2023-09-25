@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <stdexcept> // for std::invalid_argument exception
+#include <stdexcept>
 
 using namespace std;
 
@@ -142,7 +142,7 @@ int main() {
         cardList.putItem(Card(suit, rank));
     }
 
-    cout << "Step 1: ";
+  //  cout << "Step 1: ";
     cardList.printAll();
 
     // Read and delete all cards on the second line
@@ -159,7 +159,7 @@ int main() {
         cardList.deleteItem(Card(suit, rank));
     }
 
-    cout << "Step 2: ";
+   // cout << "Step 2: ";
     cardList.printAll();
 
     // Read and put the first 3 cards from the third line into the list
@@ -178,14 +178,14 @@ int main() {
         cardsToAdd--;
     }
 
-    cout << "Step 3: ";
+   // cout << "Step 3: ";
     cardList.printAll();
 
     // Read and search for cards in the fourth line
     getline(inputFile, line);
     ss.clear();
     ss.str(line);
-    cout << "Step 4: ";
+   // cout << "Step 4: ";
     while (getline(ss, cardStr, ',')) {
         if (cardStr.size() < 2) {
             cerr << "Invalid card representation: " << cardStr << endl;
