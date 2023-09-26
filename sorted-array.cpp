@@ -40,15 +40,15 @@ bool compareTo(string s1, string s2) {
 }
 
 class CardList {
-    string* listarr;  // Array to store cards
-    int n;            // Count of cards in the list
+    string* listarr;
+    int n;
 
 public:
     CardList() {
         n = 0;
-        listarr = new string[20];  // Dynamic array of size 20
+        listarr = new string[20];
         for (int i = 0; i < 20; i++) {
-            listarr[i] = " "; // Initialize every string in the list to a space " "
+            listarr[i] = " ";
         }
     }
 
@@ -58,11 +58,11 @@ public:
     void printAll();
 
     ~CardList() {
-        delete[] listarr; // Destructor to free dynamically allocated memory
+        delete[] listarr;
     }
 };
 
-// PutItem() method inserts a string (card) s into the sorted Poker cards list.
+// PutItem() method inserts a string cards into the sorted Poker cards list.
 void CardList::PutItem(string s) {
     if (listarr[0] == " ") {
         listarr[0] = s;
@@ -97,8 +97,6 @@ void CardList::DeleteItem(string s) {
                 listarr[j] = listarr[j + 1];
             }
             n -= 1;
-        } else {
-           return ;
         }
     }
 }
